@@ -1,0 +1,220 @@
+
+/*
+  LiquidCrystal Library - Hello World
+
+ Demonstrates the use a 16x2 LCD display.  The LiquidCrystal
+ library works with all LCD displays that are compatible with the
+ Hitachi HD44780 driver. There are many of them out there, and you
+ can usually tell them by the 16-pin interface.
+
+ This sketch prints "Hello World!" to the LCD
+ and shows the time.
+
+  The circuit:
+ * LCD RS pin to digital pin 12
+ * LCD Enable pin to digital pin 11
+ * LCD D4 pin to digital pin 5
+ * LCD D5 pin to digital pin 4
+ * LCD D6 pin to digital pin 3
+ * LCD D7 pin to digital pin 2
+ * LCD R/W pin to ground
+ * LCD VSS pin to ground
+ * LCD VCC pin to 5V
+ * 10K resistor:
+ * ends to +5V and ground
+ * wiper to LCD VO pin (pin 3)
+
+ Library originally added 18 Apr 2008
+ by David A. Mellis
+ library modified 5 Jul 2009
+ by Limor Fried (http://www.ladyada.net)
+ example added 9 Jul 2009
+ by Tom Igoe
+ modified 22 Nov 2010
+ by Tom Igoe
+ modified 7 Nov 2016
+ by Arturo Guadalupi
+
+ This example code is in the public domain.
+
+ http://www.arduino.cc/en/Tutorial/LiquidCrystalHelloWorld
+
+*/
+// include the library code:
+#include <LiquidCrystal.h>
+// initialize the library by associating any needed LCD interface pin
+// with the arduino pin number it is connected to
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+
+
+
+
+
+//original code for flow sensor found here http://www.bc-robotics.com/tutorials/using-a-flow-sensor-with-arduino/
+//in case i need to revert
+int flowPin = 2;    //This is the input pin on the Arduino
+volatile int count; //This integer needs to be set as volatile to ensure it updates correctly during the interrupt process.  
+int timelast; //used????
+int firsttime; //used????
+double targetamount = 2;
+double currentcups; //used????
+int targetcounts;
+int relaypin = 13;
+int acheivedyes1no0inprog2 = 0;
+int editlocation = 0;
+char unitchosen = "Cups  "
+int upbtn=0;
+int leftbtn=1;
+int rightbtn=8;
+int downbtn=9;
+int gobtn=10;
+int upbtnstate=0;
+int downbtnstate=0;
+int leftbtnstate=0;
+int rightbtnstate=0;
+int gobtnstate=0;
+int countearlycutoffset = 20; //used to cut it early to account for the late spinning
+double progress = 0;
+
+
+
+
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(flowPin, INPUT);           //Sets the pin as an input
+  pinMode(upbtn, INPUT);
+  pinMode(leftbtn, INPUT);
+  pinMode(rightbtn, INPUT);
+  pinMode(downbtn, INPUT);
+  pinMode(gobtn, INPUT);
+  attachInterrupt(0, Flow, RISING);  //Configures interrupt 0 (pin 2 on the Arduino Uno) to run the function "Flow"  
+  Serial.begin(9600);  //Start Serial //used????
+  pinMode(relaypin, OUTPUT);
+
+    // set up the LCD's number of columns and rows:
+  lcd.begin(20, 4);
+  // Print a message to the LCD.
+  lcd.print("hello, let's measure!");
+  delay(2000);
+}
+void loop() {
+  // put your main code here, to run repeatedly:  
+  upbtnstate=digitalRead(upbtn);
+  downbtnstate=digitalRead(downbtn);
+  leftbtnstate=digitalRead(leftbtn);
+  rightbtnstate=digitalRead(rightbtn);
+  gobtnstate=digitalRead(gobtn);
+
+if (upbtnstate==1){
+  if (editlocation==0){ //0 is the amount, 14 is the unit
+    targetamount=targetamount+.25
+  }
+  if (editlocation==14){ //0 is the amount, 14 is the unit
+    if (unitchosen="Quarts"){
+      unitchosen = "Cups  ");
+    }
+    Else {
+      unitchosen = "Quarts");
+    }
+  }
+  delay(300);
+}
+if (downbtnstate==1){
+  if (editlocation==0){ //0 is the amount, 14 is the unit
+    targetamount=targetamount-.25;
+  }
+  if (editlocation==14){ //0 is the amount, 14 is the unit
+    if (unitchosen="Quarts"){
+      unitchosen = "Cups  ");
+    }
+    Else {
+      unitchosen = "Quarts");
+    }
+  }
+  delay(300);
+}
+if (rightbtnstate==1 || leftbtnstate==1){
+  if (editlocation==0){ //0 is the amount, 14 is the unit
+    editlocation=14;
+  }
+  if (editlocation==14){ //0 is the amount, 14 is the unit
+    editlocation=0;
+  }
+  delay(300);
+}
+
+if (gobtnstate==1){
+  if (unitchosen=="Quarts"){
+    targetcounts = (targetamount+17.635)/0.814/4-countearlycutoffset;
+  }
+  if (unitchosen=="Cups  "){
+    targetcounts = (targetamount+17.635)/0.814-countearlycutoffset;
+  }
+  digitalWrite(relaypin, HIGH);   // turn the LED on (HIGH is the voltage level)
+  delay(200);               // wait for a second
+  digitalWrite(relaypin, LOW);    // turn the LED off by making the voltage LOW
+  acheivedyes1no0inprog2 = 2;
+  delay(300);
+}
+
+
+
+
+
+
+
+  
+  if (acheivedyes1no0inprog2==1){
+    noInterrupts(); //Disable the interrupts on the Arduino
+    lcd.setCursor(0, 1);
+    clearLine(1)
+    lcd.print("Pour is completed!");
+    interrupts();   //Enables interrupts on the Arduino
+    count = 0;
+    timelast=millis(); //used????
+    delay(2000);
+    acheivedyes1no0inprog2=0;
+  }
+
+
+if (acheivedyes1no0inprog2 == 2){ //in other words, currently pouring
+  lcd.setCursor(0, 1);
+  clearLine(1)
+  progress = round(count / targetcounts*100,0)
+  lcd.print(progress);
+  lcd.setCursor(3, 1);
+  lcd.print("%");
+}
+
+if (acheivedyes1no0inprog2 == 0){ //in other words, haven't started yet
+  clearLine(0);
+  clearLine(1);
+  lcd.setCursor(0, 0);
+  lcd.print("How much?      Unit");
+  lcd.setCursor(0, 1);
+  lcd.print(targetamount);
+  lcd.setCursor(14,1);
+  lcd.print(unitchosen);
+}
+
+
+
+if (count >= targetcounts){
+  digitalWrite(relaypin, HIGH);   // turn the LED on (HIGH is the voltage level)
+  delay(200);               // wait for a second
+  digitalWrite(relaypin, LOW);    // turn the LED off by making the voltage LOW
+  acheivedyes1no0inprog2 = 1;
+}
+
+
+}
+
+
+void Flow()
+{
+   count++; //Every time this function is called, increment "count" by 1
+   timelast=millis(); //used????
+}
